@@ -1,0 +1,3 @@
+include README.md LICENSE
+recursive-include octoprint_octoscheduler/templates *
+recursive-include octoprint_octoscheduler/static *

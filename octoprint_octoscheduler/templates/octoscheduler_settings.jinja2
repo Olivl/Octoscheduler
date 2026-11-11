@@ -1,0 +1,63 @@
+<form class="form-horizontal" onsubmit="return false;">
+    <h4>Démarrage de l'impression suivante</h4>
+
+    <div class="control-group">
+        <label class="control-label">Commande « prête »</label>
+        <div class="controls">
+            <input type="text" class="input-medium" data-bind="value: settings.plugins.octoscheduler.ready_actions">
+            <span class="help-block">
+                Nom(s) des commandes hôte <code>//action:&lt;nom&gt;</code> envoyées par l'imprimante qui lancent l'impression suivante
+                (séparés par des virgules). Les firmwares Prusa envoient <code>//action:ready</code> via le menu
+                « Imprimante prête » / « Set Ready ». Avec Marlin, un élément de menu personnalisé peut envoyer
+                <code>M118 A1 action:ready</code>. N'utilisez pas <code>start</code> : OctoPrint l'interprète déjà
+                (relance du fichier sélectionné).
+            </span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <div class="controls">
+            <label class="checkbox">
+                <input type="checkbox" data-bind="checked: settings.plugins.octoscheduler.requeue_on_failure">
+                Remettre en tête de file une impression annulée ou échouée
+            </label>
+        </div>
+    </div>
+
+    <h4>Planning</h4>
+
+    <div class="control-group">
+        <label class="control-label">Temps entre deux impressions</label>
+        <div class="controls">
+            <div class="input-append">
+                <input type="number" min="0" step="1" class="input-mini" data-bind="value: settings.plugins.octoscheduler.changeover_minutes">
+                <span class="add-on">min</span>
+            </div>
+            <span class="help-block">Temps estimé pour retirer la pièce et relancer (utilisé pour calculer les heures de fin).</span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">Source de la durée</label>
+        <div class="controls">
+            <select data-bind="value: settings.plugins.octoscheduler.time_source">
+                <option value="auto">Automatique</option>
+                <option value="octoprint">OctoPrint / PrintTimeGenius</option>
+                <option value="slicer">Commentaire du slicer</option>
+            </select>
+            <span class="help-block">
+                Automatique : moyenne des impressions précédentes du fichier si disponible, puis PrintTimeGenius s'il est
+                installé, puis l'estimation du slicer, puis celle d'OctoPrint.
+            </span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">Nuit (timeline)</label>
+        <div class="controls">
+            de <input type="number" min="0" max="23" class="input-mini" data-bind="value: settings.plugins.octoscheduler.night_start"> h
+            à <input type="number" min="0" max="23" class="input-mini" data-bind="value: settings.plugins.octoscheduler.night_end"> h
+            <span class="help-block">Période grisée sur la timeline (mettre deux valeurs identiques pour désactiver).</span>
+        </div>
+    </div>
+</form>

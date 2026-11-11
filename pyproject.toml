@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=62.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-OctoScheduler"
+version = "0.1.0"
+description = "File d'attente d'impressions avec timeline : l'impression suivante démarre quand l'imprimante est déclarée prête."
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.7,<4"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Olivl/Octoscheduler"
+
+[project.entry-points."octoprint.plugin"]
+octoscheduler = "octoprint_octoscheduler"
+
+[tool.setuptools]
+packages = ["octoprint_octoscheduler"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+octoprint_octoscheduler = ["templates/*", "static/**/*"]

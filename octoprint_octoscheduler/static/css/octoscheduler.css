@@ -1,0 +1,266 @@
+/* OctoScheduler */
+
+.osch {
+    --osch-accent: #2f7fd8;
+    --osch-accent-2: #4c95e6;
+    --osch-current: #3a9d5d;
+    --osch-border: rgba(0, 0, 0, 0.15);
+    --osch-soft: rgba(0, 0, 0, 0.04);
+    --osch-night: rgba(40, 50, 90, 0.10);
+}
+
+.osch-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.osch-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.osch-hint { font-size: 12px; margin-bottom: 6px; }
+
+/* ------------------------------------------------------------------ timeline */
+
+.osch-tl-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.osch-tl-help { margin-left: auto; }
+
+.osch-timeline {
+    position: relative;
+    border: 1px solid var(--osch-border);
+    border-radius: 4px;
+    background: var(--osch-soft);
+    margin-bottom: 12px;
+    user-select: none;
+}
+.osch-tl-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: grab;
+    scrollbar-width: thin;
+}
+.osch-tl-scroll.osch-panning { cursor: grabbing; }
+.osch-tl-scroll::-webkit-scrollbar { height: 8px; }
+.osch-tl-scroll::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.25); border-radius: 4px; }
+.osch-tl-scroll::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+
+.osch-tl-inner {
+    position: relative;
+    height: 100px;
+    min-width: 100%;
+    overflow: hidden;
+}
+.osch-tl-nights, .osch-tl-ticks, .osch-tl-track {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+}
+.osch-night {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: var(--osch-night);
+}
+.osch-tick {
+    position: absolute;
+    top: 0; bottom: 0;
+    border-left: 1px dashed rgba(0, 0, 0, 0.12);
+}
+.osch-tick span {
+    position: absolute;
+    bottom: 2px;
+    left: 3px;
+    font-size: 10px;
+    color: #888;
+    white-space: nowrap;
+}
+.osch-tick-major { border-left: 1px solid rgba(0, 0, 0, 0.3); }
+.osch-tick-major span { font-weight: bold; color: #555; }
+
+.osch-tl-track { top: 8px; bottom: 22px; }
+
+.osch-seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
+.osch-seg-queued {
+    background: var(--osch-accent);
+    cursor: grab;
+}
+.osch-seg-queued.osch-alt { background: var(--osch-accent-2); }
+.osch-seg-queued:active { cursor: grabbing; }
+.osch-seg-current {
+    background: var(--osch-current);
+    cursor: default;
+}
+.osch-seg-current.osch-paused { background: #c99234; }
+.osch-seg-elapsed {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.22);
+}
+.osch-seg.osch-unknown {
+    background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.18) 0 6px, transparent 6px 12px);
+}
+.osch-seg.osch-missing { background: #b94a48; }
+.osch-seg.osch-dragging { opacity: 0.35; }
+
+.osch-seg-body {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 3px 4px;
+    gap: 5px;
+    box-sizing: border-box;
+}
+.osch-seg-thumb {
+    height: 100%;
+    max-width: 60px;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+    flex: none;
+}
+.osch-seg-text {
+    min-width: 0;
+    font-size: 11px;
+    line-height: 14px;
+}
+.osch-seg-name, .osch-seg-time {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.osch-seg-name { font-weight: bold; }
+
+/* blocs étroits : on masque d'abord le texte, puis la miniature (infos dans l'infobulle) */
+.osch-seg.osch-narrow .osch-seg-text { display: none; }
+.osch-seg.osch-narrow .osch-seg-body { justify-content: center; padding: 3px 2px; }
+.osch-seg.osch-narrow .osch-seg-thumb { max-width: 100%; }
+.osch-seg.osch-tiny .osch-seg-thumb { display: none; }
+
+.osch-now {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: #d9534f;
+    z-index: 4;
+    pointer-events: none;
+}
+.osch-drop-marker {
+    display: none;
+    position: absolute;
+    top: 2px; bottom: 2px;
+    width: 4px;
+    margin-left: -2px;
+    background: #f0ad4e;
+    border-radius: 2px;
+    box-shadow: 0 0 6px #f0ad4e;
+    pointer-events: none;
+    z-index: 5;
+}
+.osch-tl-empty {
+    position: absolute;
+    left: 0; right: 0; top: 36px;
+    text-align: center;
+    pointer-events: none;
+}
+.osch-dropzone.osch-drag-over { outline: 2px dashed #f0ad4e; outline-offset: -2px; }
+
+/* -------------------------------------------------------------- panneau ajout */
+
+.osch-add {
+    border: 1px solid var(--osch-border);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 12px;
+}
+.osch-add-head input { margin-bottom: 2px; box-sizing: border-box; height: auto; }
+.osch-add-list { max-height: 260px; overflow-y: auto; margin-top: 6px; }
+.osch-add-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 4px;
+    border-bottom: 1px solid var(--osch-soft);
+    cursor: grab;
+}
+.osch-add-item:hover { background: var(--osch-soft); }
+.osch-add-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.osch-add-time { white-space: nowrap; font-size: 12px; }
+
+/* --------------------------------------------------------------------- liste */
+
+.osch-list { min-height: 40px; }
+.osch-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border: 1px solid var(--osch-border);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    background: #fff;
+    position: relative;
+}
+.osch-row-queued[draggable="true"] { cursor: grab; }
+.osch-row-current { background: rgba(58, 157, 93, 0.08); border-color: rgba(58, 157, 93, 0.5); }
+.osch-row.osch-missing { border-color: #b94a48; }
+.osch-row.osch-dragging { opacity: 0.35; }
+.osch-row.osch-drop-before { box-shadow: 0 -3px 0 #f0ad4e; }
+.osch-row.osch-drop-after { box-shadow: 0 3px 0 #f0ad4e; }
+.osch-seg.osch-drop-before { box-shadow: inset 4px 0 0 #f0ad4e; }
+.osch-seg.osch-drop-after { box-shadow: inset -4px 0 0 #f0ad4e; }
+
+.osch-handle { color: #999; width: 14px; text-align: center; flex: none; }
+.osch-thumb {
+    width: 64px; height: 64px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--osch-soft);
+    border-radius: 4px;
+    overflow: hidden;
+    color: #aaa;
+    font-size: 24px;
+}
+.osch-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.osch-thumb-small { width: 36px; height: 36px; font-size: 14px; }
+
+.osch-row-main { flex: 1; min-width: 0; }
+.osch-row-name {
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.osch-row-pos { color: #999; font-weight: normal; }
+.osch-row-meta { font-size: 12px; color: #666; }
+.osch-row-progress { height: 6px; margin: 4px 0 0 0; }
+.osch-row-times { text-align: right; white-space: nowrap; font-size: 12px; flex: none; }
+.osch-row-end { font-weight: bold; font-size: 14px; }
+.osch-row-actions { flex: none; min-width: 1px; }
+
+.osch-empty { padding: 12px 0; text-align: center; }
+.osch-history { margin-top: 12px; }
+.osch-history table { margin-top: 6px; }
+
+@media (max-width: 767px) {
+    .osch-thumb { width: 44px; height: 44px; }
+    .osch-row { flex-wrap: wrap; }
+    .osch-tl-help { display: none; }
+}

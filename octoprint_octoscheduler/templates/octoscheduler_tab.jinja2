@@ -1,0 +1,196 @@
+<div class="osch">
+    <!-- En-tête -->
+    <div class="osch-header">
+        <div class="osch-summary">
+            <span data-bind="visible: queue().length == 0 && !isPrinting()">File d'attente vide.</span>
+            <span data-bind="visible: queue().length > 0 || isPrinting()">
+                <strong data-bind="text: queue().length"></strong>
+                <span data-bind="text: queue().length > 1 ? 'impressions en attente' : 'impression en attente'"></span>
+                <span data-bind="visible: queue().length > 0">
+                    · <span data-bind="text: formatDuration(totalQueueTime())"></span>
+                    <span class="muted" data-bind="visible: unknownCount() > 0, text: '(' + unknownCount() + ' sans durée)'"></span>
+                </span>
+                · fin estimée <strong data-bind="text: queueEnd() ? formatClock(queueEnd()) : '?'"></strong>
+            </span>
+        </div>
+        <div class="osch-actions">
+            <button class="btn btn-primary btn-small"
+                    data-bind="click: startNext, enable: !busy() && queue().length > 0 && printerState.isReady(), visible: canPrint() && !isPrinting()"
+                    title="Lancer la première impression de la file maintenant">
+                <i class="fas fa-play"></i> Lancer la suivante
+            </button>
+            <button class="btn btn-small" data-bind="click: toggleAddPanel, visible: canManage(), css: {active: showAddPanel}">
+                <i class="fas fa-plus"></i> Ajouter des fichiers
+            </button>
+            <button class="btn btn-small btn-danger" data-bind="click: clearQueue, visible: canManage(), enable: queue().length > 0" title="Vider la file">
+                <i class="far fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="osch-hint muted" data-bind="visible: queue().length > 0, text: nextHint"></div>
+
+    <!-- Timeline -->
+    <div class="osch-tl-toolbar">
+        <div class="btn-group">
+            <button class="btn btn-mini" data-bind="click: zoomOut, enable: !isFullView()" title="Dézoomer"><i class="fas fa-search-minus"></i></button>
+            <button class="btn btn-mini" data-bind="click: zoomIn" title="Zoomer"><i class="fas fa-search-plus"></i></button>
+            <button class="btn btn-mini" data-bind="click: zoomFit, css: {active: isFullView}" title="Afficher tout le planning"><i class="fas fa-expand-arrows-alt"></i> Tout voir</button>
+            <button class="btn btn-mini" data-bind="click: scrollToNow" title="Revenir à maintenant"><i class="far fa-clock"></i> Maintenant</button>
+        </div>
+        <small class="muted" data-bind="text: zoomLabel"></small>
+        <small class="muted osch-tl-help">Ctrl + molette ou pincement pour zoomer · glisser le fond pour se déplacer</small>
+    </div>
+    <div class="osch-timeline osch-dropzone" data-osch-target="timeline">
+        <div class="osch-tl-scroll">
+            <div class="osch-tl-inner" data-bind="style: {width: timeline().width}">
+                <div class="osch-tl-nights" data-bind="foreach: timeline().nights">
+                    <div class="osch-night" data-bind="style: {left: left, width: width}" title="Nuit"></div>
+                </div>
+                <div class="osch-tl-ticks" data-bind="foreach: timeline().ticks">
+                    <div class="osch-tick" data-bind="style: {left: left}, css: {'osch-tick-major': major}">
+                        <span data-bind="text: label"></span>
+                    </div>
+                </div>
+                <div class="osch-tl-track" data-bind="foreach: timeline().blocks">
+                    <!-- ko if: kind == 'current' -->
+                    <div class="osch-seg osch-seg-current" data-bind="style: {left: left, width: width}, attr: {title: title + '\n(impression en cours, non modifiable)'}, css: {'osch-paused': paused, 'osch-unknown': unknown, 'osch-narrow': sizeClass == 'osch-narrow', 'osch-tiny': sizeClass == 'osch-tiny'}">
+                        <div class="osch-seg-elapsed" data-bind="style: {width: elapsedWidth}"></div>
+                        <div class="osch-seg-body">
+                            <img class="osch-seg-thumb" data-bind="visible: thumbnail, attr: {src: $parent.thumbUrl(thumbnail)}" alt="" draggable="false">
+                            <div class="osch-seg-text">
+                                <div class="osch-seg-name"><i class="fas fa-lock"></i> <span data-bind="text: name"></span></div>
+                                <div class="osch-seg-time"><span data-bind="text: Math.round(progress) + ' %'"></span> · fin <strong data-bind="text: endLabel"></strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if: kind == 'queued' -->
+                    <div class="osch-seg osch-seg-queued" data-bind="style: {left: left, width: width}, attr: {title: title, 'data-osch-id': id, draggable: $parent.canManage() ? 'true' : 'false'}, css: {'osch-unknown': unknown, 'osch-missing': !exists, 'osch-alt': index % 2, 'osch-narrow': sizeClass == 'osch-narrow', 'osch-tiny': sizeClass == 'osch-tiny'}">
+                        <div class="osch-seg-body">
+                            <img class="osch-seg-thumb" data-bind="visible: thumbnail, attr: {src: $parent.thumbUrl(thumbnail)}" alt="" draggable="false">
+                            <div class="osch-seg-text">
+                                <div class="osch-seg-name" data-bind="text: name"></div>
+                                <div class="osch-seg-time">
+                                    <span data-bind="text: durationLabel"></span> · fin <strong data-bind="text: endLabel"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                </div>
+                <div class="osch-now" title="Maintenant" data-bind="style: {left: timeline().nowLeft}"></div>
+                <div class="osch-drop-marker"></div>
+            </div>
+        </div>
+        <div class="osch-tl-empty muted" data-bind="visible: timeline().blocks.length == 0">
+            Glissez des fichiers ici pour les planifier
+        </div>
+    </div>
+
+    <!-- Panneau d'ajout -->
+    <div class="osch-add" data-bind="visible: showAddPanel" style="display: none">
+        <div class="osch-add-head">
+            <input type="search" class="input-block-level" placeholder="Rechercher un fichier…" data-bind="textInput: fileFilter">
+            <small class="muted">Cliquez sur <i class="fas fa-plus"></i> ou glissez un fichier sur la timeline / la liste. Vous pouvez aussi glisser depuis la liste de fichiers à gauche.</small>
+        </div>
+        <div class="osch-add-list" data-bind="foreach: filteredFiles">
+            <div class="osch-add-item" draggable="true" data-bind="attr: {'data-osch-file': path, title: path}">
+                <div class="osch-thumb osch-thumb-small">
+                    <img data-bind="visible: thumbnail, attr: {src: $parent.thumbUrl(thumbnail)}" alt="" draggable="false">
+                    <i class="fas fa-cube" data-bind="visible: !thumbnail"></i>
+                </div>
+                <div class="osch-add-name">
+                    <div data-bind="text: name"></div>
+                    <small class="muted" data-bind="text: folder"></small>
+                </div>
+                <div class="osch-add-time muted" data-bind="text: estimated ? $parent.formatDuration(estimated) : ''"></div>
+                <button class="btn btn-mini" data-bind="click: $parent.addFile" title="Ajouter à la fin de la file"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+        <div class="muted" data-bind="visible: filteredFiles().length == 0">Aucun fichier.</div>
+    </div>
+
+    <!-- Liste -->
+    <div class="osch-list osch-dropzone" data-osch-target="list" data-bind="foreach: listItems">
+        <!-- ko if: kind == 'current' -->
+        <div class="osch-row osch-row-current" title="Impression en cours : non modifiable">
+            <div class="osch-handle"><i class="fas fa-lock"></i></div>
+            <div class="osch-thumb">
+                <img data-bind="visible: thumbnail, attr: {src: $parent.thumbUrl(thumbnail)}" alt="">
+                <i class="fas fa-print" data-bind="visible: !thumbnail"></i>
+            </div>
+            <div class="osch-row-main">
+                <div class="osch-row-name" data-bind="text: name"></div>
+                <div class="osch-row-meta">
+                    <span class="label label-info" data-bind="text: paused ? 'En pause' : 'En cours'"></span>
+                    <span data-bind="text: progressLabel"></span> · reste <span data-bind="text: durationLabel"></span>
+                </div>
+                <div class="progress progress-striped active osch-row-progress">
+                    <div class="bar" data-bind="style: {width: progress + '%'}"></div>
+                </div>
+            </div>
+            <div class="osch-row-times">
+                <div class="muted">fin</div>
+                <div class="osch-row-end" data-bind="text: endLabel"></div>
+            </div>
+            <div class="osch-row-actions"></div>
+        </div>
+        <!-- /ko -->
+        <!-- ko if: kind == 'queued' -->
+        <div class="osch-row osch-row-queued" data-bind="attr: {'data-osch-id': id, draggable: $parent.canManage() ? 'true' : 'false'}, css: {'osch-missing': !exists}">
+            <div class="osch-handle" data-bind="visible: $parent.canManage()" title="Glisser pour réorganiser"><i class="fas fa-grip-vertical"></i></div>
+            <div class="osch-thumb">
+                <img data-bind="visible: thumbnail, attr: {src: $parent.thumbUrl(thumbnail)}" alt="" draggable="false">
+                <i class="fas fa-cube" data-bind="visible: !thumbnail"></i>
+            </div>
+            <div class="osch-row-main">
+                <div class="osch-row-name">
+                    <span class="osch-row-pos" data-bind="text: (index + 1) + '.'"></span>
+                    <span data-bind="text: name, attr: {title: path}"></span>
+                </div>
+                <div class="osch-row-meta">
+                    <i class="far fa-clock"></i>
+                    <span data-bind="text: durationLabel, attr: {title: sourceLabel}"></span>
+                    <span class="label label-important" data-bind="visible: !exists">fichier introuvable</span>
+                    <span class="label label-warning" data-bind="visible: exists && unknown" title="Durée inconnue : 1 h supposée pour le planning">durée inconnue</span>
+                </div>
+            </div>
+            <div class="osch-row-times">
+                <div class="muted"><span data-bind="text: startLabel"></span> →</div>
+                <div class="osch-row-end" data-bind="text: endLabel"></div>
+            </div>
+            <div class="osch-row-actions" data-bind="visible: $parent.canManage()">
+                <div class="btn-group">
+                    <button class="btn btn-mini" data-bind="click: function() { $parent.move($data, -1) }, enable: index > 0" title="Monter"><i class="fas fa-arrow-up"></i></button>
+                    <button class="btn btn-mini" data-bind="click: function() { $parent.move($data, 1) }, enable: index < $parent.queue().length - 1" title="Descendre"><i class="fas fa-arrow-down"></i></button>
+                    <button class="btn btn-mini btn-danger" data-bind="click: $parent.removeItem" title="Retirer de la file"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+    </div>
+    <div class="osch-empty muted" data-bind="visible: loaded() && listItems().length == 0">
+        Aucune impression planifiée. Utilisez <i class="fas fa-calendar-plus"></i> dans la liste des fichiers ou « Ajouter des fichiers ».
+    </div>
+
+    <!-- Historique -->
+    <div class="osch-history" data-bind="visible: history().length > 0">
+        <a href="javascript:void(0)" data-bind="click: function() { showHistory(!showHistory()) }">
+            <i class="fas" data-bind="css: {'fa-caret-right': !showHistory(), 'fa-caret-down': showHistory()}"></i>
+            Historique (<span data-bind="text: history().length"></span>)
+        </a>
+        <table class="table table-condensed" data-bind="visible: showHistory">
+            <tbody data-bind="foreach: history">
+                <tr>
+                    <td data-bind="text: name"></td>
+                    <td>
+                        <span class="label" data-bind="text: $parent.historyStatus($data), css: {'label-success': status == 'done', 'label-important': status == 'failed', 'label-warning': status == 'cancelled'}"></span>
+                    </td>
+                    <td class="muted" data-bind="text: duration ? $parent.formatDuration(duration) : ''"></td>
+                    <td class="muted" data-bind="text: ended ? $parent.formatClock(ended * 1000) : ''"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
