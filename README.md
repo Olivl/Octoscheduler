@@ -2,20 +2,14 @@
 
 Plugin OctoPrint (testé avec 1.11.8) pour mettre des impressions en file d'attente et les lancer les unes après les autres.
 
-- **Timeline** : durée de chaque impression, heure de début et de fin, nuits grisées. On peut réorganiser la file en glissant les blocs, ou y déposer un fichier. Elle affiche tout le planning à l'ouverture ; on zoome avec les boutons 🔍, Ctrl/⌘ + molette ou un pincement au trackpad (sans pouvoir dézoomer au-delà du planning complet), et on se déplace avec la molette, la barre de défilement ou en faisant glisser le fond.
-- **Liste** : miniature, nom, durée estimée et heures de début/fin de chaque fichier. On réorganise par glisser-déposer (ou avec les flèches ↑/↓ sur mobile) et on retire un fichier avec ✕.
+- **Timeline** : durée de chaque impression, heure de début et de fin, nuits grisées. On peut réorganiser la file en glissant les blocs, ou y déposer un fichier.
+- **Liste** : miniature, nom, durée estimée et heures de début/fin de chaque fichier. On réorganise par glisser-déposer (ou avec les flèches ↑/↓) et on retire un fichier avec ✕.
 - **L'impression en cours est verrouillée** : elle apparaît en tête de la timeline et de la liste, mais on ne peut ni la déplacer ni la supprimer.
 - **Jamais d'enchaînement automatique** : il faut vider et nettoyer le plateau. Pour lancer l'impression suivante, appuyez sur **« Imprimante prête »** sur l'imprimante (elle envoie `//action:ready`) ou cliquez sur **Lancer la suivante** dans l'onglet. Le planning compte environ 5 min entre deux impressions pour ce nettoyage (réglable).
 
 ## Installation
 
-Dans OctoPrint : **Paramètres → Gestionnaire de plugins → Obtenir plus… → … depuis une archive**, puis choisissez `OctoScheduler.zip` (voir plus bas pour la générer). Vous pouvez aussi saisir l'URL d'un zip de ce dépôt.
-
-Générer l'archive depuis le dépôt :
-
-```sh
-git archive --format=zip --prefix=OctoScheduler/ -o OctoScheduler.zip HEAD
-```
+Dans OctoPrint : **Paramètres → Gestionnaire de plugins → Obtenir plus… → … depuis une archive**, puis choisissez `OctoScheduler.zip`.
 
 ## Ajouter des fichiers
 
